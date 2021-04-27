@@ -47,24 +47,18 @@ namespace XMLService1
                 Dir dir = new Dir(s[0], s[1]);
                 ComboBox_Directories.Items.Add(dir);
             }
+            // Ещё настройки из ini-файла            
+            DescPath = ini.ReadString("Main", "DescPath", String.Empty);
 
             //Выбор по-умолчанию - первая директория в списке
             //ComboBox_Directories.SelectedIndex = 0;
             Dir selectedItem = (Dir)ComboBox_Directories.Items[0];
             DirSource = selectedItem._DirPath;
-
-            // Заполним список файлов
-            Fill_FileList();           
-            // Включим слежение за директорией.
-            Thread.Sleep(2000);
-            RunWatching(DirSource);
-            // Создадим таймер.
+            // Создадим таймер. Пока не запускаем.
             timer = new System.Windows.Threading.DispatcherTimer();
             timer.Tick += new EventHandler(TimerTick);
             timer.Interval = new TimeSpan(0, 0, SignalFreq);
-            timer.Start();
-            // Ещё настройки из ini-файла            
-            DescPath = ini.ReadString("Main", "DescPath", String.Empty); 
+                        
         }
 
         private void Fill_FileList()
@@ -79,10 +73,9 @@ namespace XMLService1
                 FileAttributes attributes = File.GetAttributes(filename);
                 int FileStatus = 0;
                 if ((attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-                {
-                    FileStatus = 1;
+                    FileStatus = 1;                   
+                else
                     NewFiles++;
-                }
 
                 ListBox_Files.Items.Add(new XMLFile(System.IO.Path.GetFileName(filename),
                                                     File.GetCreationTime(filename), 
@@ -92,7 +85,7 @@ namespace XMLService1
 
             TextBox_FilesCount.Text = "Файлов: " + Convert.ToString(ListBox_Files.Items.Count);
             TextBox_NewFilesCount.Text = "Необработанных: " + Convert.ToString(NewFiles);
-            if (waitWindow.IsVisible==true) waitWindow.Hide(); 
+            if (waitWindow.IsVisible == true) waitWindow.Hide(); 
         }
 
         /// <summary>
@@ -133,8 +126,8 @@ namespace XMLService1
             if ((IsChange) && (DirSource!=String.Empty))
             {
                 watcher.EnableRaisingEvents = false;
-                string ShortFileName = SourcePath!=String.Empty ? System.IO.Path.GetFileName(SourcePath) : String.Empty;
-                if ((MesType.ToString() == "Created") && (!XMLFile.IsAlreadyExist(ShortFileName)))
+                string ShortFileName = System.IO.Path.GetFileName(SourcePath);
+                if ( (MesType.ToString() == "Created") && (XMLFile.IsAlreadyExist(ShortFileName) == false) )
                 {                   
                     ListBox_Journal.Items.Add(new Journal(DateTime.Now,
                          "Пришёл новый файл '" + ShortFileName + "'")
@@ -191,13 +184,8 @@ namespace XMLService1
                                      );
                     }
                 }
-                else if (SourcePath!=String.Empty)
-                {
-                    ListBox_Journal.Items.Add(new Journal(DateTime.Now,
-                                                          "Файл '" + ShortFileName + "' уже обрататывался.")
-                                                          );
-                }
                 
+               
                 ListBox_Files.Items.Clear();
                 Thread.Sleep(1000);
                 Fill_FileList() ;

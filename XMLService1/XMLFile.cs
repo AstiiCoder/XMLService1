@@ -34,7 +34,7 @@ namespace XMLService1
             bool IfExist = false;
             foreach (string item in FileList)
             {
-                if (item == FileName)
+                if ((item == FileName) && (item != String.Empty) && (FileName != String.Empty))
                 {
                     IfExist = true;
                     break;
